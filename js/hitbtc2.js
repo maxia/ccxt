@@ -328,13 +328,20 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+
+        if (since !== undefined)
+          params.from = this.iso8601(since);
+
         let response = await this.publicGetTradesSymbol (this.extend ({
-            'symbol': market['id'],
+          'symbol': market['id'],
+          'limit': limit,
+          'by': 'timestamp',
+          'sort': 'asc'
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market).reverse();
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
